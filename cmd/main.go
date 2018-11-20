@@ -28,7 +28,7 @@ func init() {
 	pflag.Parse()
 
 	if pflag.NArg() == 0 {
-		pflag.PrintDefaults()
+		pflag.Usage()
 		os.Exit(0)
 	}
 }
