@@ -27,7 +27,7 @@ func init() {
 	pflag.StringVar(&dirPath, "dir", "", "-dir=/web")
 	pflag.Parse()
 
-	if pflag.NArg() == 0 {
+	if pflag.NFlag() == 0 {
 		pflag.Usage()
 		fmt.Fprintln(os.Stderr, "\nExample: \n\t./updatedb --dir=/tmp --type=ipdb --token=XXX\n")
 		os.Exit(0)
