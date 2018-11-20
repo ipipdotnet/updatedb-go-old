@@ -17,11 +17,17 @@ import (
 )
 
 var (
-	ErrNetwork         = errors.New("network err")
-	ErrUnzip           = errors.New("unzip err")
+	// ErrNetwork download request failed
+	ErrNetwork = errors.New("network err")
+
+	// ErrUnzip download unzip failed
+	ErrUnzip = errors.New("unzip err")
+
+	// ErrDownloadLimited download everyday limited
 	ErrDownloadLimited = errors.New("download limited")
 )
 
+//
 func BuildURL(Token, fileType, language string, compress bool) *url.URL {
 	downloadURL := &url.URL{
 		Scheme: "https",
@@ -69,20 +75,25 @@ func unzip(dst, src string) error {
 
 		defer rc.Close()
 
-		w, err := os.Create(dst)
+		tmpFile, err := ioutil.TempFile(filepath.Dir(dst), "ipip-unzip-")
 		if err != nil {
 			return ErrUnzip
 		}
-		defer w.Close()
-		_, err = io.Copy(w, rc)
+
+		_, err = io.Copy(tmpFile, rc)
 		if err != nil {
+			tmpFile.Close()
 			return ErrUnzip
 		}
+		tmp := tmpFile.Name()
+		tmpFile.Close()
+		return os.Rename(tmp, dst)
 	}
 
 	return nil
 }
 
+// Download ...
 func Download(api, dirPath, fileName string) error {
 
 	req, err := http.NewRequest("GET", api, nil)
@@ -155,9 +166,7 @@ func Download(api, dirPath, fileName string) error {
 }
 
 func sha1EncodeToString(all []byte) string {
-
 	s := sha1.New()
 	s.Write(all)
-
 	return hex.EncodeToString(s.Sum(nil))
 }
