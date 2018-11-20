@@ -1,32 +1,32 @@
-package update
+package updatedb
 
 import (
-	"os"
-	"io"
-	"io/ioutil"
-	"fmt"
-	"regexp"
-	"path/filepath"
-	"strings"
+	"archive/zip"
 	"crypto/sha1"
 	"encoding/hex"
-	"archive/zip"
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"errors"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 var (
-	ErrNetwork = errors.New("network err")
-	ErrUnzip = errors.New("unzip err")
+	ErrNetwork         = errors.New("network err")
+	ErrUnzip           = errors.New("unzip err")
 	ErrDownloadLimited = errors.New("download limited")
 )
 
 func BuildURL(Token, fileType, language string, compress bool) *url.URL {
 	downloadURL := &url.URL{
 		Scheme: "https",
-		Host: "user.ipip.net",
-		Path: "download.php",
+		Host:   "user.ipip.net",
+		Path:   "download.php",
 	}
 
 	params := url.Values{}
@@ -116,7 +116,7 @@ func Download(api, dirPath, fileName string) error {
 	}
 	tmpFile.Close()
 	all, err := ioutil.ReadFile(tmp)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -141,7 +141,7 @@ func Download(api, dirPath, fileName string) error {
 	}
 
 	if strings.HasSuffix(newName, ".zip") {
-		err = unzip(newName[0:len(newName) - 4], tmp)
+		err = unzip(newName[0:len(newName)-4], tmp)
 		os.Remove(tmp)
 		return err
 	}

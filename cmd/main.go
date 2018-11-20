@@ -5,8 +5,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/ipipdotnet/updatedb-go"
 	"github.com/spf13/pflag"
-	"ipip.net/ipdb/update"
 )
 
 var (
@@ -65,13 +65,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	api := update.BuildURL(token, fileType, language, compress)
+	api := updatedb.BuildURL(token, fileType, language, compress)
 
 	retry := 3
 
 RETRY:
-	err = update.Download(api.String(), dirPath, "")
-	if err == update.ErrNetwork {
+	err = updatedb.Download(api.String(), dirPath, "")
+	if err == updatedb.ErrNetwork {
 		if retry > 0 {
 			retry--
 			time.Sleep(time.Minute)
