@@ -26,6 +26,11 @@ func init() {
 
 	pflag.StringVar(&dirPath, "dir", "", "-dir=/web")
 	pflag.Parse()
+
+	if pflag.NArg() == 0 {
+		pflag.PrintDefaults()
+		os.Exit(0)
+	}
 }
 
 func main() {
