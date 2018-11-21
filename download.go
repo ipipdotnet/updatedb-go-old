@@ -20,6 +20,9 @@ var (
 	// ErrNetwork download request failed
 	ErrNetwork = errors.New("network err")
 
+	// ErrNotFound file not found
+	ErrNotFound = errors.New("file not found")
+
 	// ErrUnzip download unzip failed
 	ErrUnzip = errors.New("unzip err")
 
@@ -94,28 +97,29 @@ func unzip(dst, src string) error {
 }
 
 // Download ...
-func Download(api, dirPath, fileName string) error {
+func Download(api, dirPath, fileName string) (string, error) {
 
 	req, err := http.NewRequest("GET", api, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return ErrNetwork
+		return "", ErrNetwork
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == 429 {
-		return ErrDownloadLimited
-	}
-	if resp.StatusCode != 200 {
-		return ErrNetwork
+		return "", ErrDownloadLimited
+	} else if resp.StatusCode == 404 {
+		return "", ErrNotFound
+	} else if resp.StatusCode != 200 {
+		return "", ErrNetwork
 	}
 
 	tmpFile, err := ioutil.TempFile(dirPath, "ipip-")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	tmp := tmpFile.Name()
@@ -123,19 +127,19 @@ func Download(api, dirPath, fileName string) error {
 	if err != nil {
 		tmpFile.Close()
 		os.Remove(tmp)
-		return err
+		return "", err
 	}
 	tmpFile.Close()
 	all, err := ioutil.ReadFile(tmp)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	fileHash := fmt.Sprintf("sha1-%s", sha1EncodeToString(all))
 	respTag := resp.Header.Get("ETag")
 	if !strings.EqualFold(respTag, fileHash) {
 		os.Remove(tmp)
-		return fmt.Errorf("%s [%s]-[%s]", "sha1 error", fileHash, respTag)
+		return "", fmt.Errorf("%s [%s]-[%s]", "sha1 error", fileHash, respTag)
 	}
 
 	var newName string
@@ -144,7 +148,7 @@ func Download(api, dirPath, fileName string) error {
 		attachment := resp.Header.Get("Content-Disposition")
 		g := regexp.MustCompile(`filename="(.+?)"`).FindAllStringSubmatch(attachment, -1)
 		if len(g) == 0 {
-			return fmt.Errorf("%s", "download http response header error")
+			return "", fmt.Errorf("%s", "download http response header error")
 		}
 		newName = filepath.Join(dirPath, g[0][1])
 	} else {
@@ -153,16 +157,18 @@ func Download(api, dirPath, fileName string) error {
 
 	if strings.HasSuffix(newName, ".zip") {
 		err = unzip(newName[0:len(newName)-4], tmp)
-		os.Remove(tmp)
-		return err
+		if err != nil {
+			os.Remove(tmp)
+			return "", err
+		}
+	} else {
+		if err = os.Rename(tmp, newName); err != nil {
+			os.Remove(tmp)
+			return "", err
+		}
 	}
 
-	if err = os.Rename(tmp, newName); err != nil {
-		os.Remove(tmp)
-		return err
-	}
-
-	return nil
+	return newName, nil
 }
 
 func sha1EncodeToString(all []byte) string {
