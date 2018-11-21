@@ -15,6 +15,7 @@ var (
 	compress bool
 	language string
 	merge    bool
+	viewUrl  bool
 	dirPath  string
 )
 
@@ -22,8 +23,9 @@ func init() {
 	pflag.StringVar(&token, "token", "", "--token=XXX")
 	pflag.StringVar(&fileType, "type", "ipdb", "--type=ipdb|txtx")
 	pflag.BoolVar(&compress, "compress", true, "--compress")
-	pflag.BoolVar(&merge, "merge", true, "--merge")
-	pflag.StringVar(&language, "lang", "CN", "-lang=EN|CN")
+	pflag.BoolVar(&merge, "merge", false, "--merge")
+	pflag.BoolVar(&viewUrl, "view", false, "--view show download url")
+	pflag.StringVar(&language, "lang", "", "-lang=EN|CN")
 
 	pflag.StringVar(&dirPath, "dir", "", "-dir=/tmp")
 	pflag.Parse()
@@ -70,6 +72,11 @@ func main() {
 	}
 	retry := 3
 	api := updatedb.BuildURL(token, fileType, language, compress, merge)
+	if viewUrl {
+		fmt.Println()
+		fmt.Println(api)
+		os.Exit(0)
+	}
 RETRY:
 	fn, err := updatedb.Download(api.String(), dirPath, "")
 	if err == updatedb.ErrNotFound {
