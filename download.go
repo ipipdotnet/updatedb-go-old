@@ -129,12 +129,11 @@ func Download(api, dirPath, fileName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	tmp := tmpFile.Name()
+	defer os.Remove(tmp)
 	_, err = io.Copy(tmpFile, resp.Body)
 	if err != nil {
 		tmpFile.Close()
-		os.Remove(tmp)
 		return "", err
 	}
 	tmpFile.Close()
@@ -146,7 +145,6 @@ func Download(api, dirPath, fileName string) (string, error) {
 	fileHash := fmt.Sprintf("sha1-%s", sha1EncodeToString(all))
 	respTag := resp.Header.Get("ETag")
 	if !strings.EqualFold(respTag, fileHash) {
-		os.Remove(tmp)
 		return "", fmt.Errorf("%s [%s]-[%s]", "sha1 error", fileHash, respTag)
 	}
 
@@ -166,12 +164,10 @@ func Download(api, dirPath, fileName string) (string, error) {
 	if strings.HasSuffix(newName, ".zip") {
 		err = unzip(newName[0:len(newName)-4], tmp)
 		if err != nil {
-			os.Remove(tmp)
 			return "", err
 		}
 	} else {
 		if err = os.Rename(tmp, newName); err != nil {
-			os.Remove(tmp)
 			return "", err
 		}
 	}
