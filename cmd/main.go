@@ -14,14 +14,15 @@ var (
 	fileType string
 	compress bool
 	language string
-
-	dirPath string
+	merge    bool
+	dirPath  string
 )
 
 func init() {
 	pflag.StringVar(&token, "token", "", "--token=XXX")
 	pflag.StringVar(&fileType, "type", "ipdb", "--type=ipdb|txtx")
 	pflag.BoolVar(&compress, "compress", true, "--compress")
+	pflag.BoolVar(&merge, "merge", true, "--merge")
 	pflag.StringVar(&language, "lang", "CN", "-lang=EN|CN")
 
 	pflag.StringVar(&dirPath, "dir", "", "-dir=/tmp")
@@ -68,10 +69,18 @@ func main() {
 		os.Exit(1)
 	}
 	retry := 3
-	api := updatedb.BuildURL(token, fileType, language, compress)
+	api := updatedb.BuildURL(token, fileType, language, compress, merge)
 RETRY:
 	fn, err := updatedb.Download(api.String(), dirPath, "")
-	if err == updatedb.ErrNetwork {
+	if err == updatedb.ErrNotFound {
+		fmt.Println()
+		fmt.Println("file not found")
+		os.Exit(1)
+	} else if err == updatedb.ErrPermissions {
+		fmt.Println()
+		fmt.Println(err)
+		os.Exit(1)
+	} else if err == updatedb.ErrNetwork {
 		if retry > 0 {
 			retry--
 			time.Sleep(time.Minute)

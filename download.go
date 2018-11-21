@@ -20,6 +20,9 @@ var (
 	// ErrNetwork download request failed
 	ErrNetwork = errors.New("network err")
 
+	// ErrPermissions service no Permissions
+	ErrPermissions = errors.New("service no Permissions")
+
 	// ErrNotFound file not found
 	ErrNotFound = errors.New("file not found")
 
@@ -31,7 +34,7 @@ var (
 )
 
 //
-func BuildURL(Token, fileType, language string, compress bool) *url.URL {
+func BuildURL(Token, fileType, language string, compress, merge bool) *url.URL {
 	downloadURL := &url.URL{
 		Scheme: "https",
 		Host:   "user.ipip.net",
@@ -48,6 +51,9 @@ func BuildURL(Token, fileType, language string, compress bool) *url.URL {
 	}
 	if fileType == "ipdb" {
 		compress = false
+		if merge {
+			params.Add("ext", "ip")
+		}
 	}
 	if compress {
 		params.Add("ext", "zip")
@@ -111,6 +117,8 @@ func Download(api, dirPath, fileName string) (string, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode == 429 {
 		return "", ErrDownloadLimited
+	} else if resp.StatusCode == 403 {
+		return "", ErrPermissions
 	} else if resp.StatusCode == 404 {
 		return "", ErrNotFound
 	} else if resp.StatusCode != 200 {
