@@ -25,9 +25,9 @@ func init() {
 	pflag.BoolVar(&compress, "compress", true, "--compress")
 	pflag.BoolVar(&merge, "merge", false, "--merge")
 	pflag.BoolVar(&viewUrl, "view", false, "--view show download url")
-	pflag.StringVar(&language, "lang", "", "-lang=EN|CN")
+	pflag.StringVar(&language, "lang", "", "--lang=EN|CN")
 
-	pflag.StringVar(&dirPath, "dir", "", "-dir=/tmp")
+	pflag.StringVar(&dirPath, "dir", "", "--dir=/tmp")
 	pflag.Parse()
 
 	if pflag.NFlag() == 0 {
