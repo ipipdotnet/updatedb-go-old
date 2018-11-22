@@ -13,16 +13,16 @@ ipipdowner-linux-x64
 <pre>
 git clone https://github.com/ipipdotnet/updatedb-go
 cd updatedb-go/cmd
-ipipdowner-li-x64.exe
+ipipdowner-windows-x64.exe
 </pre>
 
 # Help
 <pre>
 Example:
         下载ipdb格式数据文件
-        ipipdowner-li-x64.exe --dir=c:/temp --type=ipdb --token=XXX
+        ipipdowner-windows-x64.exe --dir=c:/temp --type=ipdb --token=XXX
         下载文本格式数据文件
-        ipipdowner-li-x64.exe --dir=c:/temp --type=txtx --token=XXX
+        ipipdowner-windows-x64.exe --dir=c:/temp --type=txtx --token=XXX
 
 Usage of ipipdowner-windows-x64.exe:
       --compress       --compress (default true)
